@@ -1,0 +1,32 @@
+{
+  "name": "grt-student-app-vercel",
+  "version": "4.0.0",
+  "private": true,
+  "description": "GRT Student Records Register - ONE Vercel deployment (React frontend + Express API as a single project), backed by Firebase Firestore. Every stored item is under 50 KB.",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "dev": "concurrently -n API,WEB -c green,cyan \"node backend/server.js\" \"vite --config frontend/vite.config.mjs\"",
+    "build": "vite build --config frontend/vite.config.mjs",
+    "start": "node backend/server.js",
+    "firebase-env": "node scripts/firebase-env.js",
+    "migrate-legacy": "node backend/scripts/migrate-legacy.js",
+    "setup": "npm install && npm run build",
+    "deploy": "npx vercel@latest --prod"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
+    "express": "^4.19.2",
+    "firebase-admin": "^12.5.0",
+    "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "axios": "^1.7.7",
+    "concurrently": "^8.2.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2",
+    "vite": "^5.4.6"
+  }
+}

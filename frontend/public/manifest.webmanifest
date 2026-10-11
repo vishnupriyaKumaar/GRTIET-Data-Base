@@ -1,0 +1,16 @@
+{
+  "name": "GRT Student Records Register",
+  "short_name": "GRT Students",
+  "description": "Student records register for GRT Institute of Engineering and Technology, Department of CSE.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#faf5ea",
+  "theme_color": "#5c1420",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

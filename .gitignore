@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+backend/data/
+backend/serviceAccountKey.json
+backend/firebase-key.json
+serviceAccountKey.json
+.vercel
+*.log

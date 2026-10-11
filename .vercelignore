@@ -1,0 +1,11 @@
+# Never upload secrets or local-only files when deploying with the Vercel CLI.
+.env
+.env.*
+backend/.env
+backend/serviceAccountKey.json
+backend/firebase-key.json
+serviceAccountKey.json
+backend/data
+node_modules
+dist
+*.log
