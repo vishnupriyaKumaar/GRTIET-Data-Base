@@ -121,7 +121,7 @@ export default function ImageCapture({ id, label, value, onChange, maxBytes = 24
         <p className="hint-text">Selected: {value.name} ({Math.ceil(value.size / 1024)}KB, auto-compressed to fit under {Math.round(maxBytes / 1024)}KB)</p>
       )}
       {error && <p className="error-text">{error}</p>}
-      <p className="hint-text">{label} is optional - it can also be added later from Update.</p>
+            <p className="hint-text">{label} is required.</p>
     </div>
   );
 }

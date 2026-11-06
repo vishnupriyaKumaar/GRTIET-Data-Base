@@ -219,6 +219,15 @@ export default function StudentForm() {
       return;
     }
 
+        if (!photo) {
+      setError("Please upload or capture the Student Photo.");
+      return;
+    }
+    if (!signature) {
+      setError("Please upload or capture the Student Signature.");
+      return;
+    }
+
     setSaving(true);
     try {
       const formData = new FormData();
@@ -484,14 +493,14 @@ export default function StudentForm() {
             )}
           </div>
 
-          <h3 className="form-section-label">Student Photo (optional)</h3>
+                    <h3 className="form-section-label">Student Photo <span style={{ color: "red" }}>*</span></h3>
           <div className="form-grid">
             <div className="form-field form-field-full">
               <ImageCapture id="photo" label="Photo" kind="photo" value={photo} onChange={setPhoto} maxBytes={MAX_PHOTO_SIZE} />
             </div>
           </div>
 
-          <h3 className="form-section-label">Student Signature (optional)</h3>
+                    <h3 className="form-section-label">Student Signature <span style={{ color: "red" }}>*</span></h3>
           <div className="form-grid">
             <div className="form-field form-field-full">
               <ImageCapture id="signature" label="Signature" kind="signature" value={signature} onChange={setSignature} maxBytes={MAX_SIGNATURE_SIZE} />

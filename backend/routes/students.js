@@ -303,7 +303,8 @@ router.post("/", parseForm, async (req, res) => {
     const rollNo = String(req.body.rollNo).trim();
 
     const academic=parseAcademic(req.body);
-    // Photo and signature are optional - they can be added later via Update.
+        if (!req.photo) return res.status(400).json({ success: false, message: "Student photo is required." });
+    if (!req.signature) return res.status(400).json({ success: false, message: "Student signature is required." });
     if(await store.findByRollNo(rollNo))return res.status(409).json({message:'Roll No is already registered.'});
     const student = {
       rollNo,
