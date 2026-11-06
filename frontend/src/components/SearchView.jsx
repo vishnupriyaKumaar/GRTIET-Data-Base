@@ -46,7 +46,7 @@ export default function SearchView() {
           value={rollNo}
           onChange={setRollNo}
           onPick={loadStudent}
-          placeholder="Enter Roll No or Name (e.g. 24CS101 / Vishnu)"
+                    placeholder="Enter Roll No or Name (e.g. 110324104084 / vishnu)"
           autoFocus
         />
         <button type="submit" className="btn-primary" disabled={loading}>

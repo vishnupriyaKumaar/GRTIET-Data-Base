@@ -247,7 +247,7 @@ export default function StudentForm() {
       if (signature) formData.append("signature", signature);
       appendAcademic(formData,academic);
       await api.post("/students", formData);
-      setSuccess(`Saved — Roll No ${rollNo.trim()} added under Batch ${normalizeBatch(details.batch)}.`);
+      setSuccess(`Saved — Roll No  ${rollNo.trim()} added under Batch ${normalizeBatch(details.batch)}.`);
       resetAll();
     } catch (err) {
       if (err.response?.status === 409) {
@@ -265,13 +265,13 @@ export default function StudentForm() {
       <h2>Add New Student</h2>
 
       <div className="form-field rollno-field">
-        <label htmlFor="rollNo">Roll No</label>
+        <label htmlFor="rollNo">Roll No  :     </label>
         <input
           id="rollNo"
           value={rollNo}
           onChange={handleRollNoChange}
           onBlur={handleRollNoBlur}
-          placeholder="e.g. 24CS101"
+                    placeholder="e.g. 110324104084"
           autoFocus
           required
         />
