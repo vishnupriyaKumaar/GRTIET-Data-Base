@@ -11,6 +11,7 @@ export function AcademicFields({value:v,onChange}){
  const set=(key,value)=>onChange({...v,[key]:value});
  const updateArrear=(index,patch)=>set('arrears',v.arrears.map((a,i)=>i===index?{...a,...patch}:a));
  const total=+v.semestersCompleted;
+ const removeArrear=i=>{const left=v.arrears.filter((_,k)=>k!==i);onChange({...v,arrears:left,arrearStatus:left.length?String(left.length):'NA'});};
  const changeOccurred=(i,a,value)=>{const cleared=a.clearedSem===NOT_CLEARED||+a.clearedSem>=+value?a.clearedSem:value;updateArrear(i,{occurredSem:value,clearedSem:cleared});};
  return <section><div className="form-grid">
  { [['umisNumber','UMIS Number'],['emisNumber','EMIS Number'],['apparId','APPAR ID']].map(([key,label])=><label key={key}>{label}<input required maxLength={60} value={v[key]||''} onChange={e=>set(key,e.target.value)}/></label>)}
@@ -20,7 +21,7 @@ export function AcademicFields({value:v,onChange}){
  <h3 className="form-section-label">Arrear Details</h3>
  <label>How many arrear records?<select value={v.arrearStatus} onChange={e=>onChange({...v,arrearStatus:e.target.value,arrears:e.target.value==='NA'?[]:resize([],e.target.value==='Current'?1:+e.target.value,blankArrear)})}><option>NA</option><option>Current</option>{options(60)}</select></label>
  <p className="hint-text">Select NA for no arrears, Current for pending subjects, or the number of past arrear records. Each new past arrear record is for one subject. For Current, use Add subject for additional pending subjects.</p>
- {(v.arrears||[]).map((a,i)=><fieldset key={i}><legend>{v.arrearStatus==='Current'?'Current arrears':`Arrear record ${i+1}`}</legend><div className="form-grid">
+ {(v.arrears||[]).map((a,i)=><fieldset key={i}><legend>{v.arrearStatus==='Current'?'Current arrears':`Arrear record ${i+1}`}{v.arrearStatus!=='Current'&&<button type="button" className="btn-secondary" style={{marginLeft:12,padding:'4px 12px',fontSize:'0.8rem',color:'#b91c1c',borderColor:'#b91c1c'}} onClick={()=>{if(window.confirm(`Delete Arrear record ${i+1}?`))removeArrear(i);}}>🗑 Delete</button>}</legend><div className="form-grid">
  {v.arrearStatus!=='Current'&&<><label>Occurred in semester<select value={a.occurredSem} onChange={e=>changeOccurred(i,a,e.target.value)}>{options(total)}</select></label><label>Cleared in semester<select value={a.clearedSem} onChange={e=>updateArrear(i,{clearedSem:e.target.value})}>{Array.from({length:Math.max(0,total-(+a.occurredSem)+1)},(_,k)=>+a.occurredSem+k).map(n=><option key={n} value={n}>{n}</option>)}<option value={NOT_CLEARED}>Still Not Cleared</option></select></label></>}
  </div>
  {a.subjects.map((sub,j)=><div className="form-grid" key={j}>{['name','code'].map(key=><label key={key}>Subject {j+1} {key}<input required maxLength={120} value={sub[key]} onChange={e=>updateArrear(i,{subjects:a.subjects.map((s,k)=>j===k?{...s,[key]:e.target.value}:s)})}/></label>)}</div>)}
