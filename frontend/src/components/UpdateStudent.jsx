@@ -408,7 +408,7 @@ export default function UpdateStudent({ initialRoll = "" }) {
 
           </div>
 
-          <AcademicFields value={form} onChange={setForm} onSave={()=>handleSave({preventDefault(){}})}/>
+          <AcademicFields value={form} onChange={setForm} showSave onSave={()=>handleSave({preventDefault(){}})}/>
           {error&&<p className="error-text">{error}</p>}
           {success&&<p className="success-text">{success}</p>}
           <h3 className="form-section-label">Residency &amp; Admission</h3>
