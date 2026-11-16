@@ -7,11 +7,14 @@ export const NOT_CLEARED='Not Cleared';
 // CGPA is not generated for a semester while a past arrear is still pending
 // (occurred in/before that semester and not cleared yet, or cleared later).
 export const cgpaPending=(status,arrears,s)=>status!=='Current'&&(arrears||[]).some(a=>Number(a.occurredSem)<=s&&(a.clearedSem===NOT_CLEARED||s<Number(a.clearedSem)));
-export function AcademicFields({value:v,onChange}){
+export function AcademicFields({value:v,onChange,onSave}){
+ const isCurrent=v.arrearStatus==='Current';
  const set=(key,value)=>onChange({...v,[key]:value});
  const updateArrear=(index,patch)=>set('arrears',v.arrears.map((a,i)=>i===index?{...a,...patch}:a));
  const total=+v.semestersCompleted;
- const removeArrear=i=>{const left=v.arrears.filter((_,k)=>k!==i);onChange({...v,arrears:left,arrearStatus:left.length?String(left.length):'NA'});};
+  const removeArrear=i=>{const left=v.arrears.filter((_,k)=>k!==i);onChange({...v,arrearStatus:left.length?String(left.length):'NA',arrears:left});};
+ const addSubject=()=>{if(isCurrent){updateArrear(0,{subjects:[...v.arrears[0].subjects,{name:'',code:''}]});return;}const next=[...(v.arrears||[]),{...blankArrear(),_new:true,_edit:true}];onChange({...v,arrearStatus:String(next.length),arrears:next});};
+ const editRecord=i=>updateArrear(i,{_edit:true});
  const changeOccurred=(i,a,value)=>{const cleared=a.clearedSem===NOT_CLEARED||+a.clearedSem>=+value?a.clearedSem:value;updateArrear(i,{occurredSem:value,clearedSem:cleared});};
  return <section><div className="form-grid">
  { [['umisNumber','UMIS Number'],['emisNumber','EMIS Number'],['apparId','APPAR ID']].map(([key,label])=><label key={key}>{label}<input required maxLength={60} value={v[key]||''} onChange={e=>set(key,e.target.value)}/></label>)}
@@ -19,14 +22,17 @@ export function AcademicFields({value:v,onChange}){
  </div>
 
  <h3 className="form-section-label">Arrear Details</h3>
- <label>How many arrear records?<select value={v.arrearStatus} onChange={e=>onChange({...v,arrearStatus:e.target.value,arrears:e.target.value==='NA'?[]:resize([],e.target.value==='Current'?1:+e.target.value,blankArrear)})}><option>NA</option><option>Current</option>{options(60)}</select></label>
- <p className="hint-text">Select NA for no arrears, Current for pending subjects, or the number of past arrear records. Each new past arrear record is for one subject. For Current, use Add subject for additional pending subjects.</p>
- {(v.arrears||[]).map((a,i)=><fieldset key={i}><legend>{v.arrearStatus==='Current'?'Current arrears':`Arrear record ${i+1}`}{v.arrearStatus!=='Current'&&<button type="button" className="btn-secondary" style={{marginLeft:12,padding:'4px 12px',fontSize:'0.8rem',color:'#b91c1c',borderColor:'#b91c1c'}} onClick={()=>{if(window.confirm(`Delete Arrear record ${i+1}?`))removeArrear(i);}}>🗑 Delete</button>}</legend><div className="form-grid">
- {v.arrearStatus!=='Current'&&<><label>Occurred in semester<select value={a.occurredSem} onChange={e=>changeOccurred(i,a,e.target.value)}>{options(total)}</select></label><label>Cleared in semester<select value={a.clearedSem} onChange={e=>updateArrear(i,{clearedSem:e.target.value})}>{Array.from({length:Math.max(0,total-(+a.occurredSem)+1)},(_,k)=>+a.occurredSem+k).map(n=><option key={n} value={n}>{n}</option>)}<option value={NOT_CLEARED}>Still Not Cleared</option></select></label></>}
+ <div className="update-actions"><button type="button" className="btn-secondary" disabled={!isCurrent&&(v.arrears||[]).length>=60} onClick={addSubject}>+ Add Subject</button></div>
+ <p className="hint-text">Click Add Subject for each arrear subject. To change a saved record, press Edit inside it: only "Cleared in semester" can be changed, or the record can be deleted. Then use the main Save button at the bottom.</p>
+ {(v.arrears||[]).map((a,i)=>{const editing=!!a._edit;const fixed=!editing||(!isCurrent&&!a._new);return <fieldset key={i}><legend>{isCurrent?'Current arrears':`Arrear record ${i+1}`}{!isCurrent&&<button type="button" className="btn-secondary" disabled={!editing} style={{marginLeft:12,padding:'4px 12px',fontSize:'0.8rem',color:'#b91c1c',borderColor:'#b91c1c',opacity:editing?1:0.5}} onClick={()=>{if(window.confirm(`Delete Arrear record ${i+1}?`))removeArrear(i);}}>🗑 Delete</button>}</legend><div className="form-grid">
+ {!isCurrent&&<><label>Occurred in semester<select disabled={fixed} value={a.occurredSem} onChange={e=>changeOccurred(i,a,e.target.value)}>{options(total)}</select></label><label>Cleared in semester<select disabled={!editing} value={a.clearedSem} onChange={e=>updateArrear(i,{clearedSem:e.target.value})}>{Array.from({length:Math.max(0,total-(+a.occurredSem)+1)},(_,k)=>+a.occurredSem+k).map(n=><option key={n} value={n}>{n}</option>)}<option value={NOT_CLEARED}>Still Not Cleared</option></select></label></>}
  </div>
- {a.subjects.map((sub,j)=><div className="form-grid" key={j}>{['name','code'].map(key=><label key={key}>Subject {j+1} {key}<input required maxLength={120} value={sub[key]} onChange={e=>updateArrear(i,{subjects:a.subjects.map((s,k)=>j===k?{...s,[key]:e.target.value}:s)})}/></label>)}</div>)}
- {v.arrearStatus==='Current'&&<div className="update-actions"><button type="button" className="btn-secondary" disabled={a.subjects.length>=60} onClick={()=>updateArrear(i,{subjects:[...a.subjects,{name:'',code:''}]})}>Add subject</button><button type="button" className="btn-secondary" disabled={a.subjects.length<=1} onClick={()=>updateArrear(i,{subjects:a.subjects.slice(0,-1)})}>Remove last subject</button></div>}
- </fieldset>)}
+ {a.subjects.map((sub,j)=><div className="form-grid" key={j}>{['name','code'].map(key=><label key={key}>Subject {j+1} {key}<input required disabled={fixed} maxLength={120} value={sub[key]} onChange={e=>updateArrear(i,{subjects:a.subjects.map((s,k)=>j===k?{...s,[key]:e.target.value}:s)})}/></label>)}</div>)}
+ <div className="update-actions">
+ {isCurrent&&editing&&<button type="button" className="btn-secondary" disabled={a.subjects.length<=1} onClick={()=>updateArrear(i,{subjects:a.subjects.slice(0,-1)})}>Remove last subject</button>}
+ {!editing&&<button type="button" className="btn-secondary" onClick={()=>editRecord(i)}>✏️ Edit</button>}
+ </div>
+ </fieldset>;})}
 
  <h3 className="form-section-label">Semester Marks</h3>
  <p className="hint-text">CGPA is not generated for a semester while an arrear from that semester (or earlier) is still not cleared. It appears again from the semester the arrear is cleared.</p>

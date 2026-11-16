@@ -256,7 +256,7 @@ export default function UpdateStudent({ initialRoll = "" }) {
       appendAcademic(formData,form);
       const res = await api.put(`/students/${encodeURIComponent(student.rollNo)}`, formData);
       setStudent(res.data.data);
-      setForm({...initialAcademic(),...res.data.data});
+      setForm({ ...initialAcademic(), ...res.data.data });
       setPhoto(null);
       setPhotoKey((k) => k + 1);
       setSignature(null);
@@ -408,7 +408,9 @@ export default function UpdateStudent({ initialRoll = "" }) {
 
           </div>
 
-          <AcademicFields value={form} onChange={setForm}/>
+          <AcademicFields value={form} onChange={setForm} onSave={()=>handleSave({preventDefault(){}})}/>
+          {error&&<p className="error-text">{error}</p>}
+          {success&&<p className="success-text">{success}</p>}
           <h3 className="form-section-label">Residency &amp; Admission</h3>
           <div className="form-grid">
             <div className="form-field">
