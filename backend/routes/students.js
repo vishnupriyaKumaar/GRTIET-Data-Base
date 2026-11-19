@@ -369,7 +369,7 @@ router.put("/:rollNo", parseForm, async (req, res) => {
     const existing=await store.findByRollNo(req.params.rollNo);
     if(!existing)return res.status(404).json({message:'Student not found.'});
     const academic=parseAcademic(req.body);
-    const updates = Object.fromEntries(Object.entries(req.body).filter(([key])=>store.FIELD_KEYS.includes(key)&&!key.endsWith('Path')&&!['createdAt','updatedAt','arrearOccurred','arrearCleared','arrearSubjectNames','arrearSubjectCodes'].includes(key)));
+    const updates = Object.fromEntries(Object.entries(req.body).filter(([key])=>store.FIELD_KEYS.includes(key)&&!key.endsWith('Path')&&!['createdAt','updatedAt','arrearOccurred','arrearCleared','arrearSubjectNames','arrearSubjectCodes','discontinued','discontinuedReason','discontinuedOn'].includes(key)));
     if (updates.rollNo !== undefined) {
       const desired = String(updates.rollNo).trim();
       if (!desired) return res.status(400).json({ success: false, message: "Roll No is required." });
@@ -397,6 +397,20 @@ router.put("/:rollNo", parseForm, async (req, res) => {
 
     const student = await store.updateStudent(req.params.rollNo, updates, req.photo, req.signature);
     res.json({ success: true, data: publicView(student) });
+  } catch (err) {
+    if (err.code === "NOT_FOUND") {
+      return res.status(404).json({ success: false, message: err.message });
+    }
+    res.status(err.status || 500).json({ success: false, message: err.message });
+  }
+});
+
+// PUT /api/students/:rollNo/discontinue - body: { discontinued: true|false, reason?: "text" }
+// Marks the student as Discontinued (reason optional) or cancels it. Admin only.
+router.put("/:rollNo/discontinue", async (req, res) => {
+  try {
+    const data = await store.setDiscontinued(req.params.rollNo, !!req.body.discontinued, req.body.reason);
+    res.json({ success: true, data });
   } catch (err) {
     if (err.code === "NOT_FOUND") {
       return res.status(404).json({ success: false, message: err.message });

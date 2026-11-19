@@ -24,7 +24,7 @@ const MAX_SIGNATURE_BYTES = 14 * 1024;
 
 const STUDENTS = 'students';
 const IMAGES = 'studentImages';
-const LIST_FIELDS = ['rollNo', 'name', 'batch', 'hasPhoto', 'hasSignature', 'imgV'];
+const LIST_FIELDS = ['rollNo', 'name', 'batch', 'hasPhoto', 'hasSignature', 'imgV', 'discontinued', 'discontinuedReason'];
 
 const bad = (status, message, code) => Object.assign(new Error(message), { status, code });
 
@@ -45,6 +45,8 @@ function upgradeRecord(s) {
   const sch = String(r.scholarship || '').trim();
   if (sch && !SCHOLARSHIP_VALUES.includes(sch)) { r.scholarshipOther = r.scholarshipOther || sch; r.scholarship = 'Other'; }
   if (r.scholarship !== 'Other') r.scholarshipOther = '';
+  r.discontinued = r.discontinued === 'Yes' ? 'Yes' : 'No';
+  if (r.discontinued !== 'Yes') { r.discontinuedReason = ''; r.discontinuedOn = ''; }
   return r;
 }
 
@@ -130,6 +132,7 @@ async function searchStudents({ q = '', batch = '' } = {}) {
   return list.map((s) => ({
     rollNo: s.rollNo, name: s.name, batch: s.batch,
     photoPath: s.hasPhoto ? imgUrl(s.id, 'photo', s.imgV) : '',
+    discontinued: s.discontinued === 'Yes' ? 'Yes' : 'No', discontinuedReason: s.discontinuedReason || '',
   }));
 }
 
@@ -160,6 +163,7 @@ async function addStudent(record, photo, signature) {
       await db.create(STUDENTS, id, {
         rollNo: saved.rollNo, name: saved.name, batch: saved.batch,
         hasPhoto: !!photo, hasSignature: !!signature, imgV: v,
+        discontinued: 'No', discontinuedReason: '',
         photoBytes: photoLen, signatureBytes: sigLen, z,
       });
     } catch (e) {
@@ -211,6 +215,7 @@ async function updateStudent(rollNo, updates, photo, signature) {
   const body = {
     rollNo: merged.rollNo, name: merged.name, batch: normalizeBatch(merged.batch),
     hasPhoto: !!photo || !!oldDoc.hasPhoto, hasSignature: !!signature || !!oldDoc.hasSignature, imgV: v,
+    discontinued: merged.discontinued === 'Yes' ? 'Yes' : 'No', discontinuedReason: merged.discontinued === 'Yes' ? String(merged.discontinuedReason || '') : '',
     photoBytes: photoLen, signatureBytes: sigLen, z,
   };
   if (renamed) {
@@ -227,6 +232,27 @@ async function updateStudent(rollNo, updates, photo, signature) {
     await db.set(STUDENTS, newId, body);
   }
   return toRecord(newId, await db.get(STUDENTS, newId));
+}
+
+// Marks a student as discontinued (or cancels it). Only the discontinue fields change.
+async function setDiscontinued(rollNo, discontinued, reason) {
+  const found = await readDoc(rollNo);
+  if (!found) throw Object.assign(new Error('Student not found.'), { code: 'NOT_FOUND', status: 404 });
+  const { id, doc } = found;
+  const existing = upgradeRecord(unpack(doc.z));
+  const yes = !!discontinued;
+  const note = yes ? String(reason || '').trim().slice(0, 300) : '';
+  const merged = {
+    ...existing,
+    discontinued: yes ? 'Yes' : 'No',
+    discontinuedReason: note,
+    discontinuedOn: yes ? new Date().toISOString() : '',
+    updatedAt: new Date().toISOString(),
+  };
+  const z = pack(stripForStorage(merged));
+  checkBudget(z.length, doc.hasPhoto ? doc.photoBytes || 0 : 0, doc.hasSignature ? doc.signatureBytes || 0 : 0);
+  await db.set(STUDENTS, id, { ...doc, discontinued: merged.discontinued, discontinuedReason: note.slice(0, 200), z });
+  return { rollNo: merged.rollNo, discontinued: merged.discontinued, discontinuedReason: note };
 }
 
 async function deleteStudent(rollNo) {
@@ -260,5 +286,5 @@ module.exports = {
   SCHOLARSHIP_VALUES, FIELD_KEYS: excel.FIELD_KEYS, COLUMN_META: excel.COLUMN_META,
   compareRollNo: excel.compareRollNo, normalizeBatch,
   idFor, findByRollNo, getAllStudents, getBatchList, searchStudents, getImage,
-  addStudent, updateStudent, deleteStudent, buildCustomExcel,
+  addStudent, updateStudent, setDiscontinued, deleteStudent, buildCustomExcel,
 };

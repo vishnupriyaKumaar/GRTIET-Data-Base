@@ -152,6 +152,29 @@ export default function UpdateStudent({ initialRoll = "" }) {
     } catch (e) {}
   }
 
+  // Discontinue / Cancel Discontinue (reason is optional).
+  async function handleDiscontinue(item) {
+    const already = item.discontinued === "Yes";
+    let reason = "";
+    if (already) {
+      if (!window.confirm(`Cancel discontinue for ${item.name} (${item.rollNo})?`)) return;
+    } else {
+      const typed = window.prompt(`Discontinue ${item.name} (${item.rollNo})?\n\nReason (optional - you can leave it empty):`, "");
+      if (typed === null) return; // pressed Cancel
+      reason = typed.trim();
+    }
+    setError("");
+    setSuccess("");
+    try {
+      const res = await api.put(`/students/${encodeURIComponent(item.rollNo)}/discontinue`, { discontinued: !already, reason });
+      const d = res.data.data || {};
+      setBatchStudents((list) => list.map((x) => (x.rollNo === item.rollNo ? { ...x, discontinued: d.discontinued, discontinuedReason: d.discontinuedReason } : x)));
+      setSuccess(already ? `Discontinue cancelled for ${item.name} (${item.rollNo}).` : `${item.name} (${item.rollNo}) marked as Discontinued.`);
+    } catch (err) {
+      setError(err.response?.data?.message || "Could not change the discontinue status.");
+    }
+  }
+
   async function handleDelete(item) {
     if (!window.confirm(`Delete ${item.name} (${item.rollNo})? This cannot be undone.`)) return;
     setError("");
@@ -340,18 +363,24 @@ export default function UpdateStudent({ initialRoll = "" }) {
           </p>
           <div className="student-grid">
             {batchStudents.map((it) => (
-              <div className="student-card" key={it.rollNo}>
+              <div className={it.discontinued === "Yes" ? "student-card is-discontinued" : "student-card"} key={it.rollNo} title={it.discontinued === "Yes" && it.discontinuedReason ? `Discontinued: ${it.discontinuedReason}` : undefined}>
                 <div className="student-card-photo">
                   {it.photoPath ? <img src={it.photoPath} alt={it.name} /> : <span>No Photo</span>}
                 </div>
                 <div className="student-card-info">
                   <strong>{it.name}</strong>
                   <span>{it.rollNo}</span>
+                  {it.discontinued === "Yes" && <em className="discontinued-badge">Discontinued</em>}
                 </div>
                 <div className="student-card-actions">
                   <button type="button" className="btn-small btn-view" onClick={() => navigate(`/student/${encodeURIComponent(it.rollNo)}`)}>View</button>
                   <button type="button" className="btn-small btn-edit" onClick={() => loadStudent(it.rollNo)}>Edit</button>
                   <button type="button" className="btn-small btn-delete" onClick={() => handleDelete(it)}>Delete</button>
+                </div>
+                <div className="student-card-actions">
+                  <button type="button" className={it.discontinued === "Yes" ? "btn-small btn-cancel-discontinue" : "btn-small btn-discontinue"} onClick={() => handleDiscontinue(it)}>
+                    {it.discontinued === "Yes" ? "Cancel Discontinue" : "Discontinue"}
+                  </button>
                 </div>
               </div>
             ))}

@@ -1478,3 +1478,11 @@ table{max-width:100%;}
   .card.login-card{padding:24px 18px 20px;border-radius:16px;}
   .app-main:has(.login-card){padding-left:12px;padding-right:12px;}
 }
+
+/* ---------- Discontinued students (Update > batch cards) ---------- */
+.student-card.is-discontinued{background:#fee2e2;border-color:#f87171;box-shadow:0 2px 10px rgba(220,38,38,.22)}
+.student-card.is-discontinued .student-card-photo{background:#fecaca}
+.student-card.is-discontinued .student-card-info span{color:#7f1d1d}
+.discontinued-badge{font-style:normal;font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#991b1b;background:#fecaca;border:1px solid #f87171;border-radius:999px;padding:2px 10px;margin-top:2px}
+.btn-discontinue{background:#ea580c}.btn-discontinue:hover{background:#c2410c}
+.btn-cancel-discontinue{background:#0f766e}.btn-cancel-discontinue:hover{background:#115e59}

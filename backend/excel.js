@@ -52,6 +52,8 @@ const FIELDS = [
   {key:'arrearSubjectNames',header:'Arrear Subject Name',width:38},
   {key:'arrearSubjectCodes',header:'Arrear Subject Code',width:26},
   {key:'arrearCleared',header:'Arrear Cleared Semester',width:26},
+  {key:'discontinued',header:'Discontinued (Yes / No)',width:20},
+  {key:'discontinuedReason',header:'Discontinue Reason',width:30},
 ];
 const FIELD_KEYS = [...FIELDS.map((f) => f.key), "scholarshipOther"];
 
@@ -240,6 +242,7 @@ function groupOf(key) {
   if (["fatherMobile", "studentMobile", "aadharCardNumber", "email", "batch"].includes(key)) return "Contact Details";
   if (/^sem\d+(Gpa|Cgpa)$/.test(key)) return "Semester Marks";
   if (key.startsWith("arrear")) return "Arrear Details";
+  if (key.startsWith("discontinue")) return "Discontinue Status";
   if (["residentType", "transportMode", "transportBoardingPoint", "admissionType", "counselorName", "scholarship"].includes(key)) return "Residency & Admission";
   if (["createdAt", "updatedAt"].includes(key)) return "Record Dates";
   return "Academic Records";
@@ -273,6 +276,7 @@ function buildWorkbook(students,colsFor,{print=false}={}){
   flat.scholarship=s.scholarship==='Other'?`Other - ${s.scholarshipOther||''}`:(s.scholarship||'');
   flat.photoPath='';
   flat.signaturePath='';
+  flat.discontinued=s.discontinued==='Yes'?'Yes':'No';
   const sheet=getOrCreateSheet(workbook,s.batch,cols);
   const row=sheet.addRow(buildRowValues(flat,cols));
   styleDataRow(row,row.number,cols);
